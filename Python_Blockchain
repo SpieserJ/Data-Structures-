@@ -1,0 +1,85 @@
+import hashlib
+import datetime
+
+class Block:
+    #The number of blocks is set to 0 because it is the first block in the chain (the genesis block)
+    numBlock = 0
+    #data is set to none
+    data = None
+    #Next is set to none, this acts as a pointer to the next block (used to link)
+    next = None 
+    #hash is set to none, this is responsible for the cryptography
+    hash = None
+    #nonce is set to 0, A nonce is a random whole number iterated until the golden nonce is found (Helps generate the right hash)
+    nonce = 0
+    #Previous hash is set to 0x0, storing the hash renders the blockchain immutable
+    previous_hash = 0x0
+    #The timestamp describes the time the transaction took place
+    timestamp = datetime.datetime.now()
+    #The constructor __init__ initializes the attributes of the class
+    def __init__(self, data):
+        #self and data represent what will be contained within an object
+        self.data = data
+
+    #This function generate the hash of the block
+    def hash(self):
+        #The nonce, data, previous hash, timestamp, and block number are put into a string and run through the SHA-256 function
+        h = hashlib.sha256()
+        h.update(
+            str(self.nonce).encode('-utf-8')+
+            str(self.data).encode('utf-8')+
+            str(self.previous_hash).encode('utf-8')+
+            str(self.timestamp).encode('utf-8')+
+            str(self.numBlock).encode('utf-8')
+        )
+        return h.hexdigest()
+
+    #This function displays the block's hash and block number
+    def __str__(self):
+        return "Block Hash:" + str(self.hash()) + "\nnumBlock: " + str(self.numBlock)
+    
+class Blockchain:
+    #Difficulty is set to 20, increasing difficulty decreases the target range (makes it harder to mine a block)
+    diff = 20
+    #max nonce is set to 2^32, which is the maximum number that can be stored in a 32-bit number
+    maxNonce = 2**32
+    #target number is set to 2^(256-diff), the nonce must be less than the target to be accepted
+    target = 2 ** (256-diff)
+
+    block = Block('Genesis')
+    #This is the first node in our linked list (python requires dummy first since objects are passed by reference)
+    dummy = head = block
+
+    #This function is used to add blocks to the blockchain
+    def add(self, block):
+        #The previous hash is set to the block at the top of the list
+        block.previous_hash = self.block.hash()
+        #The new block is set equal to the current block plus 1
+        block.numBlock = self.block.numBlock + 1
+
+        #These two lines form the shape of the blockchain
+        self.block.next = block
+        self.block = self.block.next
+
+    #This is a proof of work consensus mechanism, in order to add blocks to the chain, the nodes try out different nonces until it finds a hash less than the target range
+    def mine(self, block):
+        for n in range(self.maxNonce):
+            if int(block.hash(), 16) <= self.target:
+                self.add(block)
+                print(block)
+                break
+            else:
+                block.nonce += 1
+
+blockchain = Blockchain()
+
+for n in range(10):
+    blockchain.mine(Block("Block " + str(n+1)))
+
+while blockchain.head != None:
+    print(blockchain.head)
+    blockchain.head = blockchain.head.next
+
+
+
+
