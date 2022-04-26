@@ -1,5 +1,3 @@
 # Data-Structures-
 
-Edit by Jack 
-Another Edit 
-Third Edit
+This is a culmination of data structures I have built
